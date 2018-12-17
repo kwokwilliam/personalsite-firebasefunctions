@@ -9,23 +9,24 @@ admin.initializeApp();
 // });
 
 exports.removeUserFromQueue = functions.https.onCall((data, context) => {
-    if (data && data.id && data.key) {
+    if (data && data.id) {
         const id = data.id;
-        const queueKey = data.key;
+        // const queueKey = data.key;
+        let idInfoRef = admin.database().ref(`/tutorq/idToQueueInfo/${id}`)
+
+        return idInfoRef.once('value').then((snap) => {
+            const val = snap.val();
+            const { queueKey } = val;
+            admin.database().ref(`/tutorq/inqueue/${queueKey}`).remove();
+            idInfoRef.remove();
+        }).then(() => {
+            return { success: true };
+        }).catch((e) => {
+            return { success: false, error: e };
+        });
 
         // const uid = context.auth.uid
-        let firebaseRef = admin.database().ref(`/tutorq/inqueue/${queueKey}`);
 
-        return firebaseRef.once('value').then((snap) => {
-            let val = snap.val();
-            if (val && val.id === id) {
-                firebaseRef.remove();
-                return true;
-            }
-            return false;
-        }).then(success => {
-            return { success };
-        });
     }
     return { success: false };
 });
