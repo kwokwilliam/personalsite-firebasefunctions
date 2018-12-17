@@ -28,7 +28,7 @@ exports.removeUserFromQueue = functions.https.onCall((data, context) => {
         });
     }
     return { success: false };
-})
+});
 
 
 // // Saves a message to the Firebase Realtime Database but sanitizes the text by removing swearwords.
