@@ -8,7 +8,7 @@ admin.initializeApp();
 //  response.send("Hello from Firebase!");
 // });
 
-exports.removeUserFromQueue = functions.https.onCall((data, context) => {
+exports.DEPRECATED_removeUserFromQueue = functions.https.onCall((data, context) => {
     // console.log('v5');
     if (data && data.id) {
         const id = data.id;
@@ -102,7 +102,7 @@ exports.removeUserFromQueue = functions.https.onCall((data, context) => {
 });
 
 
-exports.removeUserFromQueueTest = functions.https.onCall(async (data, context) => {
+exports.removeUserFromQueue = functions.https.onCall(async (data, context) => {
     // if data doesn't exist or data.id doesn't exist, this call will fail.
     if (!data && !data.id) {
         return { success: false, error: { message: 'No data or data.id' } };
@@ -137,7 +137,7 @@ exports.removeUserFromQueueTest = functions.https.onCall(async (data, context) =
                     removeReason = "REMOVED FROM QUEUE";
                 }
             } else {
-                throw new Error('Someone tried to abuse the application');
+                throw new Error('Please log out of admin before using tutor');
             }
         } else {
             // Otherwise if the user is not an admin, then that means they
@@ -170,12 +170,12 @@ exports.removeUserFromQueueTest = functions.https.onCall(async (data, context) =
             problemDescription,
             timestampJoinedQueue,
             timestampLeftQueue: admin.database.ServerValue.TIMESTAMP,
-            whoHelped: tutorName,
+            whoHelped,
             reason: removeReason,
             id
         });
-        dbQueueRef.remove();
-        idInfoRef.remove();
+        await dbQueueRef.remove();
+        await idInfoRef.remove();
         return { success: true };
 
         // { success: true };
