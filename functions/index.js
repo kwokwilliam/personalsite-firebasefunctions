@@ -139,39 +139,46 @@ exports.removeUserFromQueueTest = functions.https.onCall(async (data, context) =
             } else {
                 throw new Error('Someone tried to abuse the application');
             }
-
-            // Set up the user's queue info based on their id
-            const idInfoMappingSnap = await idInfoRef.once('value');
-            const idInfoMappingVal = idInfoMappingSnap.val();
-            const { queueKey } = idInfoMappingVal;
-            dbQueueRef = admin.database().ref(`/tutorq/inqueue/${queueKey}`);
-
-            // grab the user's queue info and store it into constants
-            const dbQueueSnap = await dbQueueRef.once('value');
-            const dbQueueVal = dbQueueSnap.val();
-            const {
-                classNumber,
-                location,
-                problemCategory,
-                problemDescription,
-                timestamp: timestampJoinedQueue } = dbQueueVal;
-
-            // push information to the notInQueueAnymore branch
-            await admin.database().ref(`tutorq/notInQueueAnymore`).push({
-                classNumber,
-                location,
-                problemCategory,
-                problemDescription,
-                timestampJoinedQueue,
-                timestampLeftQueue: admin.database.ServerValue.TIMESTAMP,
-                whoHelped: tutorName,
-                reason: removeReason,
-                id
-            });
-            await dbQueueRef.remove();
-            await idInfoRef.remove();
-            return { success: true };
+        } else {
+            // Otherwise if the user is not an admin, then that means they
+            // want to remove themselves from the queue
+            removeReason = "REMOVED SELF";
+            whoHelped = "SELF";
         }
+        // Set up the user's queue info based on their id
+        const idInfoMappingSnap = await idInfoRef.once('value');
+        const idInfoMappingVal = idInfoMappingSnap.val();
+        const { queueKey } = idInfoMappingVal;
+        dbQueueRef = admin.database().ref(`/tutorq/inqueue/${queueKey}`);
+
+        // grab the user's queue info and store it into constants
+        const dbQueueSnap = await dbQueueRef.once('value');
+        const dbQueueVal = dbQueueSnap.val();
+        const {
+            classNumber,
+            location,
+            problemCategory,
+            problemDescription,
+            timestamp: timestampJoinedQueue } = dbQueueVal;
+
+        // push information to the notInQueueAnymore branch
+        // then remove the other branches.
+        await admin.database().ref(`tutorq/notInQueueAnymore`).push({
+            classNumber,
+            location,
+            problemCategory,
+            problemDescription,
+            timestampJoinedQueue,
+            timestampLeftQueue: admin.database.ServerValue.TIMESTAMP,
+            whoHelped: tutorName,
+            reason: removeReason,
+            id
+        });
+        dbQueueRef.remove();
+        idInfoRef.remove();
+        return { success: true };
+
+        // { success: true };
     } catch (e) {
         console.log(e);
         return { success: false, error: e };
