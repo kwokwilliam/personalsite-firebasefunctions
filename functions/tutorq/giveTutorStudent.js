@@ -4,7 +4,7 @@ const admin = require('firebase-admin');
 // giveTutorStudent
 const giveTutorStudent = functions.https.onCall(async (data, context) => {
     if (!context || !context.auth || !context.auth.uid) {
-        return false;
+        return { success: false, error: { message: 'FAIL' } };
     }
 
     try {
@@ -67,8 +67,9 @@ const giveTutorStudent = functions.https.onCall(async (data, context) => {
                 }
             });
 
-            // push to inprogress
-            await admin.database().ref('/tutorq/inprogress').push({
+            // set admin's inprogress
+            // assumes each admin can only help 1 at a time
+            await admin.database().ref(`/tutorq/inprogress/${context.auth.uid}`).set({
                 classNumber,
                 problemCategory,
                 problemDescription,
