@@ -16,7 +16,7 @@ const giveTutorStudent = functions.https.onCall(async (data, context) => {
             // Grab all the ids in order to iterate through it later on
             const idInfoRef = admin.database().ref(`/tutorq/idToQueueInfo`);
             const idInfoSnap = await idInfoRef.once('value');
-            const idInfoVal = idInfoSnap.val();
+            const idInfoVal = idInfoSnap.val() || {};
 
             // Check to make sure people are in queue
             if (Object.keys(idInfoVal).length === 0) {
