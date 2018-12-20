@@ -60,7 +60,7 @@ const giveTutorStudent = functions.https.onCall(async (data, context) => {
             // check to make sure that user isn't already in the inprogress branch
             const inProgressRef = admin.database().ref('/tutorq/inprogress');
             const inProgressSnap = await inProgressRef.once('value');
-            const inProgressVal = inProgressSnap.val();
+            const inProgressVal = inProgressSnap.val() || {};
             Object.keys(inProgressVal).forEach(d => {
                 if (inProgressVal[d].id === id) {
                     throw new Error("INPROGRESSALREADY");
@@ -80,7 +80,7 @@ const giveTutorStudent = functions.https.onCall(async (data, context) => {
             })
             // remove from inqueue and idtoqueueinfo
             await admin.database().ref(`/tutorq/inqueue/${queueListFirstKey}`).remove();
-            await admin.database().ref(`/tutorq/idToQueueInfo/${id}`);
+            await admin.database().ref(`/tutorq/idToQueueInfo/${id}`).remove();
             // return success
             return { success: true }
 
