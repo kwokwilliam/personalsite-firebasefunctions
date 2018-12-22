@@ -25,7 +25,7 @@ const giveTutorStudent = functions.https.onCall(async (data, context) => {
 
             // Grab the first person in queue
             const queueListRef = admin.database().ref(`/tutorq/inqueue`);
-            const queueListFirstSnap = await queueListRef.orderByKey().limitToFirst(1).once('value');
+            const queueListFirstSnap = await queueListRef.orderByChild('timestamp').limitToFirst(1).once('value');
             const queueListFirstVal = queueListFirstSnap.val();
             const queueListFirstKey = Object.keys(queueListFirstVal)[0];
 
