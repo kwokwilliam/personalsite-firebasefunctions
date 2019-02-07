@@ -6,13 +6,13 @@ const removeDuplicateUser = async () => {
         // grab all the queueKeys from idToQueue
         const idToQueueRef = admin.database().ref(`/tutorq/idToQueueInfo`);
         const idToQueueSnap = await idToQueueRef.once('value');
-        const idToQueueVal = idToQueueSnap.val();
-        const queueKeys = Object.keys(idToQueueVal).map(d => idToQueueVal[d].queueKey)
+        const idToQueueVal = idToQueueSnap.val() || {};
+        const queueKeys = Object.keys(idToQueueVal).map(d => idToQueueVal[d].queueKey);
 
         // grab all the Queues
         const dbQueueRef = admin.database().ref(`/tutorq/inqueue`);
         const dbQueueSnap = await dbQueueRef.once('value');
-        let dbQueueVal = dbQueueSnap.val();
+        let dbQueueVal = dbQueueSnap.val() || {};
 
         // for every key in queueKeys list, remove it from temp dbQueueRef object
         queueKeys.forEach(d => {
