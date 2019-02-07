@@ -86,6 +86,8 @@ const removeUserFromQueue = functions.https.onCall(async (data, context) => {
             let a = await removeDuplicateUser();
             if (!a.success) {
                 return a;
+            } else {
+                return { success: true }
             }
         }
 
