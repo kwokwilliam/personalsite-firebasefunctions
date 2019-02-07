@@ -1,11 +1,43 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
+const removeDuplicateUser = async () => {
+    try {
+        // grab all the queueKeys from idToQueue
+        const idToQueueRef = admin.database().ref(`/tutorq/idToQueueInfo`);
+        const idToQueueSnap = await idToQueueRef.once('value');
+        const idToQueueVal = idToQueueSnap.val();
+        const queueKeys = Object.keys(idToQueueVal).map(d => idToQueueVal[d].queueKey)
+
+        // grab all the Queues
+        const dbQueueRef = admin.database().ref(`/tutorq/inqueue`);
+        const dbQueueSnap = await dbQueueRef.once('value');
+        let dbQueueVal = dbQueueSnap.val();
+
+        // for every key in queueKeys list, remove it from temp dbQueueRef object
+        queueKeys.forEach(d => {
+            delete dbQueueVal[d];
+        });
+
+
+        // remove the odd man(s) out from the actual database.
+        Object.keys(dbQueueVal).forEach(async (d) => {
+            await dbQueueRef.child(d).remove();
+        })
+        return { success: true }
+    } catch (e) {
+        return { success: false, error: { message: e.message } }
+    }
+}
 
 // RemoveUserFromQueue
 const removeUserFromQueue = functions.https.onCall(async (data, context) => {
     // if data doesn't exist or data.id doesn't exist, this call will fail.
     if (!data && !data.id) {
+        let a = await removeDuplicateUser();
+        if (!a.success) {
+            return a;
+        }
         return { success: false, error: { message: 'No data or data.id' } };
     }
 
@@ -49,6 +81,14 @@ const removeUserFromQueue = functions.https.onCall(async (data, context) => {
         // Set up the user's queue info based on their id
         const idInfoMappingSnap = await idInfoRef.once('value');
         const idInfoMappingVal = idInfoMappingSnap.val();
+
+        if (idInfoMappingVal === null || idInfoMappingVal === undefined) {
+            let a = await removeDuplicateUser();
+            if (!a.success) {
+                return a;
+            }
+        }
+
         const { queueKey } = idInfoMappingVal;
         dbQueueRef = admin.database().ref(`/tutorq/inqueue/${queueKey}`);
 
